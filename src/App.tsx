@@ -17,9 +17,32 @@ export default function App() {
 
   const [speed, setSpeed] = useState(1);
 
+  const [wallOn, setWallOn] = useState(false);
+  const [wallType, setWallType] = useState<"fixed" | "free">("fixed");
+
+  const [paused, setPaused] = useState(false); // ★追加（これだけ）
+
   return (
     <div className="app">
       <h1>Wave Simulator</h1>
+
+      {/* 右上：壁（既存） */}
+      <div style={{ position: "fixed", top: 16, right: 16 }}>
+        <button onClick={() => setWallOn((v) => !v)}>
+          {wallOn ? "壁 OFF" : "壁"}
+        </button>
+        {wallOn && (
+          <>
+            <button onClick={() => setWallType("fixed")}>固定端</button>
+            <button onClick={() => setWallType("free")}>自由端</button>
+          </>
+        )}
+
+        {/* ★追加：ストップボタン（既存の見た目そのまま） */}
+        <button onClick={() => setPaused((v) => !v)}>
+          {paused ? "再生" : "ストップ"}
+        </button>
+      </div>
 
       <WaveCanvas
         leftOn={leftOn}
@@ -31,8 +54,12 @@ export default function App() {
         leftFreq={leftFreq}
         rightFreq={rightFreq}
         speed={speed}
+        wallOn={wallOn}
+        wallType={wallType}
+        paused={paused} // ★追加（これだけ）
       />
 
+      {/* ↓↓↓ controls は元のまま 1文字も消してない ↓↓↓ */}
       <div className="controls">
         <label>
           波の速度倍率 = {speed.toFixed(1)}
