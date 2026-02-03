@@ -12,148 +12,220 @@ export default function App() {
   const [leftLambda, setLeftLambda] = useState(200);
   const [rightLambda, setRightLambda] = useState(200);
 
-  const [leftFreq, setLeftFreq] = useState(1);
-  const [rightFreq, setRightFreq] = useState(1);
+  const [leftVib, setLeftVib] = useState(1);
+  const [rightVib, setRightVib] = useState(1);
 
   const [speed, setSpeed] = useState(1);
+  const [playbackSpeed, setPlaybackSpeed] = useState(1);
 
   const [wallOn, setWallOn] = useState(false);
   const [wallType, setWallType] = useState<"fixed" | "free">("fixed");
 
-  const [paused, setPaused] = useState(false); // ★追加（これだけ）
+  const [paused, setPaused] = useState(false);
 
   return (
     <div className="app">
-      <h1>Wave Simulator</h1>
+      <header className="app-header">
+        <h1 className="app-title">Wave Simulator</h1>
+        <p className="app-subtitle">波の干渉・反射・定常波を可視化</p>
+      </header>
 
-      {/* 右上：壁（既存） */}
-      <div style={{ position: "fixed", top: 16, right: 16 }}>
-        <button onClick={() => setWallOn((v) => !v)}>
-          {wallOn ? "壁 OFF" : "壁"}
+      <div className="toolbar">
+        <button
+          className={`toolbar-btn ${wallOn ? "active" : ""}`}
+          onClick={() => setWallOn((v) => !v)}
+        >
+          {wallOn ? "壁 ON" : "壁"}
         </button>
         {wallOn && (
           <>
-            <button onClick={() => setWallType("fixed")}>固定端</button>
-            <button onClick={() => setWallType("free")}>自由端</button>
+            <button
+              className={`toolbar-btn ${wallType === "fixed" ? "active" : ""}`}
+              onClick={() => setWallType("fixed")}
+            >
+              固定端
+            </button>
+            <button
+              className={`toolbar-btn ${wallType === "free" ? "active" : ""}`}
+              onClick={() => setWallType("free")}
+            >
+              自由端
+            </button>
           </>
         )}
-
-        {/* ★追加：ストップボタン（既存の見た目そのまま） */}
-        <button onClick={() => setPaused((v) => !v)}>
-          {paused ? "再生" : "ストップ"}
+        <button
+          className={`toolbar-btn primary ${paused ? "" : "active"}`}
+          onClick={() => setPaused((v) => !v)}
+        >
+          {paused ? "▶ 再生" : "⏸ 停止"}
         </button>
       </div>
 
-      <WaveCanvas
-        leftOn={leftOn}
-        rightOn={rightOn}
-        leftAmp={leftAmp}
-        rightAmp={rightAmp}
-        leftLambda={leftLambda}
-        rightLambda={rightLambda}
-        leftFreq={leftFreq}
-        rightFreq={rightFreq}
-        speed={speed}
-        wallOn={wallOn}
-        wallType={wallType}
-        paused={paused} // ★追加（これだけ）
-      />
+      <div className="canvas-wrap">
+        <WaveCanvas
+          leftOn={leftOn}
+          rightOn={rightOn}
+          leftAmp={leftAmp}
+          rightAmp={rightAmp}
+          leftLambda={leftLambda}
+          rightLambda={rightLambda}
+          leftVib={leftVib}
+          rightVib={rightVib}
+          speed={speed}
+          playbackSpeed={playbackSpeed}
+          wallOn={wallOn}
+          wallType={wallType}
+          paused={paused}
+        />
+      </div>
 
-      {/* ↓↓↓ controls は元のまま 1文字も消してない ↓↓↓ */}
+      <div className="legend">
+        <span className="legend-item">
+          <span className="legend-dot green" /> 左からの波（入射）
+        </span>
+        <span className="legend-item">
+          <span className="legend-dot red" /> 右からの波（入射）
+        </span>
+        <span className="legend-item">
+          <span className="legend-dot blue" /> 定常波
+        </span>
+        <span className="legend-item">
+          <span className="legend-dot orange" /> 反射波（壁あり時）
+        </span>
+      </div>
+
       <div className="controls">
-        <label>
-          波の速度倍率 = {speed.toFixed(1)}
-          <input
-            type="range"
-            min={0.2}
-            max={2}
-            step={0.1}
-            value={speed}
-            onChange={(e) => setSpeed(Number(e.target.value))}
-          />
-        </label>
+        <section className="controls-section global">
+          <h2>全体</h2>
+          <div className="control-row">
+            <label>
+              <span className="control-label">
+                波の速度倍率 <span className="control-value">{speed < 1 ? speed.toFixed(2) : speed.toFixed(1)}</span>
+              </span>
+              <input
+                type="range"
+                min={0.01}
+                max={2}
+                step={0.01}
+                value={speed}
+                onChange={(e) => setSpeed(Number(e.target.value))}
+              />
+            </label>
+          </div>
+          <div className="control-row">
+            <label>
+              <span className="control-label">
+                表示速度 <span className="control-value">{playbackSpeed < 1 ? playbackSpeed.toFixed(2) : playbackSpeed.toFixed(1)}×</span>
+              </span>
+              <input
+                type="range"
+                min={0.1}
+                max={2}
+                step={0.1}
+                value={playbackSpeed}
+                onChange={(e) => setPlaybackSpeed(Number(e.target.value))}
+              />
+            </label>
+          </div>
+        </section>
 
-        <hr />
+        <section className="controls-section left">
+          <h2>左端</h2>
+          <div className="toggle-wrap">
+            <button
+              className={`toggle-btn ${leftOn ? "on" : "off"}`}
+              onClick={() => setLeftOn((v) => !v)}
+            >
+              {leftOn ? "ON" : "OFF"}
+            </button>
+          </div>
+          <div className="control-row">
+            <label>
+              <span className="control-label">振幅 A = <span className="control-value">{leftAmp}</span></span>
+              <input
+                type="range"
+                min={10}
+                max={80}
+                value={leftAmp}
+                onChange={(e) => setLeftAmp(Number(e.target.value))}
+              />
+            </label>
+          </div>
+          <div className="control-row">
+            <label>
+              <span className="control-label">波長 λ = <span className="control-value">{leftLambda}</span></span>
+              <input
+                type="range"
+                min={80}
+                max={400}
+                value={leftLambda}
+                onChange={(e) => setLeftLambda(Number(e.target.value))}
+              />
+            </label>
+          </div>
+          <div className="control-row">
+            <label>
+              <span className="control-label">振動数 f = <span className="control-value">{leftVib.toFixed(1)} Hz</span></span>
+              <input
+                type="range"
+                min={0.5}
+                max={3}
+                step={0.1}
+                value={leftVib}
+                onChange={(e) => setLeftVib(Number(e.target.value))}
+              />
+            </label>
+          </div>
+        </section>
 
-        <h2>左端（緑）</h2>
-        <button onClick={() => setLeftOn((v) => !v)}>
-          {leftOn ? "OFF" : "ON"}
-        </button>
-
-        <label>
-          振幅 A = {leftAmp}
-          <input
-            type="range"
-            min={10}
-            max={80}
-            value={leftAmp}
-            onChange={(e) => setLeftAmp(Number(e.target.value))}
-          />
-        </label>
-
-        <label>
-          波長 λ = {leftLambda}
-          <input
-            type="range"
-            min={80}
-            max={400}
-            value={leftLambda}
-            onChange={(e) => setLeftLambda(Number(e.target.value))}
-          />
-        </label>
-
-        <label>
-          周波数 f = {leftFreq.toFixed(1)} Hz
-          <input
-            type="range"
-            min={0.5}
-            max={3}
-            step={0.1}
-            value={leftFreq}
-            onChange={(e) => setLeftFreq(Number(e.target.value))}
-          />
-        </label>
-
-        <hr />
-
-        <h2>右端（赤）</h2>
-        <button onClick={() => setRightOn((v) => !v)}>
-          {rightOn ? "OFF" : "ON"}
-        </button>
-
-        <label>
-          振幅 A = {rightAmp}
-          <input
-            type="range"
-            min={10}
-            max={80}
-            value={rightAmp}
-            onChange={(e) => setRightAmp(Number(e.target.value))}
-          />
-        </label>
-
-        <label>
-          波長 λ = {rightLambda}
-          <input
-            type="range"
-            min={80}
-            max={400}
-            value={rightLambda}
-            onChange={(e) => setRightLambda(Number(e.target.value))}
-          />
-        </label>
-
-        <label>
-          周波数 f = {rightFreq.toFixed(1)} Hz
-          <input
-            type="range"
-            min={0.5}
-            max={3}
-            step={0.1}
-            value={rightFreq}
-            onChange={(e) => setRightFreq(Number(e.target.value))}
-          />
-        </label>
+        <section className="controls-section right">
+          <h2>右端</h2>
+          <div className="toggle-wrap">
+            <button
+              className={`toggle-btn ${rightOn ? "on" : "off"}`}
+              onClick={() => setRightOn((v) => !v)}
+            >
+              {rightOn ? "ON" : "OFF"}
+            </button>
+          </div>
+          <div className="control-row">
+            <label>
+              <span className="control-label">振幅 A = <span className="control-value">{rightAmp}</span></span>
+              <input
+                type="range"
+                min={10}
+                max={80}
+                value={rightAmp}
+                onChange={(e) => setRightAmp(Number(e.target.value))}
+              />
+            </label>
+          </div>
+          <div className="control-row">
+            <label>
+              <span className="control-label">波長 λ = <span className="control-value">{rightLambda}</span></span>
+              <input
+                type="range"
+                min={80}
+                max={400}
+                value={rightLambda}
+                onChange={(e) => setRightLambda(Number(e.target.value))}
+              />
+            </label>
+          </div>
+          <div className="control-row">
+            <label>
+              <span className="control-label">振動数 f = <span className="control-value">{rightVib.toFixed(1)} Hz</span></span>
+              <input
+                type="range"
+                min={0.5}
+                max={3}
+                step={0.1}
+                value={rightVib}
+                onChange={(e) => setRightVib(Number(e.target.value))}
+              />
+            </label>
+          </div>
+        </section>
       </div>
     </div>
   );

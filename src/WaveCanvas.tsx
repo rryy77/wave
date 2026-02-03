@@ -12,10 +12,13 @@ type WaveCanvasProps = {
   leftLambda: number;
   rightLambda: number;
 
-  leftFreq: number;
-  rightFreq: number;
+  leftVib: number;
+  rightVib: number;
 
   speed: number;
+
+  /** 見た目の再生速度（1=等速、0.5=スローモーション、2=2倍速）。波の物理的な速さは変わらない */
+  playbackSpeed: number;
 
   wallOn: boolean;
   wallType: "fixed" | "free";
@@ -35,9 +38,10 @@ export default function WaveCanvas({
   rightAmp,
   leftLambda,
   rightLambda,
-  leftFreq,
-  rightFreq,
+  leftVib,
+  rightVib,
   speed,
+  playbackSpeed,
   wallOn,
   wallType,
   paused,
@@ -90,18 +94,29 @@ export default function WaveCanvas({
 
     const draw = () => {
       const t = tRef.current;
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
       const L = canvas.width;
+      const H = canvas.height;
+
+      // 背景（濃いグラデーション風）
+      ctx.fillStyle = "#06080b";
+      ctx.fillRect(0, 0, L, H);
+      // 中央の基準線（薄く）
+      ctx.strokeStyle = "rgba(255,255,255,0.06)";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(0, H / 2);
+      ctx.lineTo(L, H / 2);
+      ctx.stroke();
+
       const mid = L / 2;
 
-      const vL = leftLambda * leftFreq * speed;
-      const vR = rightLambda * rightFreq * speed;
+      const vL = leftLambda * leftVib * speed;
+      const vR = rightLambda * rightVib * speed;
 
       const kL = (2 * Math.PI) / leftLambda;
       const kR = (2 * Math.PI) / rightLambda;
-      const wL = 2 * Math.PI * leftFreq;
-      const wR = 2 * Math.PI * rightFreq;
+      const wL = 2 * Math.PI * leftVib;
+      const wR = 2 * Math.PI * rightVib;
 
       const smooth = 60;
 
@@ -159,12 +174,13 @@ export default function WaveCanvas({
       if (wallOn && leftOn) {
         const reachTime = mid / vL;
         const reflected = t >= reachTime;
-        const sign = wallType === "fixed" ? -1 : 1;
+        // 固定端: 壁で y=0 → 反射は位相 -2*kL*mid、符号 +1。自由端: 壁で dy/dx=0 → 符号 -1
+        const reflSign = wallType === "fixed" ? 1 : -1;
+        const phaseAtWall = 2 * kL * mid;
 
-        // 入射（左→壁）
+        // 入射（左→壁）。右側にも「壁で止まる前の続き」として表示
         drawLine(
           (x) => {
-            if (x > mid) return 0;
             const e = smoothstep(clamp((vL * t - x) / smooth, 0, 1));
             return e * leftAmp * Math.sin(kL * x - wL * t);
           },
@@ -172,35 +188,47 @@ export default function WaveCanvas({
           2,
         );
 
-        // 反射（壁→左）
+        // 反射（壁→左）：境界条件を満たす位相 -2*kL*mid を入れる
         if (reflected) {
           drawLine(
             (x) => {
               if (x > mid) return 0;
               const d = vL * (t - reachTime);
               const e = smoothstep(clamp((d - (mid - x)) / smooth, 0, 1));
-              return sign * e * leftAmp * Math.sin(kL * x + wL * t);
+              return (
+                reflSign *
+                e *
+                leftAmp *
+                Math.sin(kL * x + wL * t - phaseAtWall)
+              );
             },
             "rgb(255, 140, 0)",
             2,
           );
         }
 
-        // 定常波（入射＋反射）
+        // 定常波（入射＋反射の重ね合わせ）。壁基準の座標 X = mid - x
         if (reflected) {
           drawLine(
             (x) => {
               if (x > mid) return 0;
-
-              // 壁を x = 0 とした座標
               const X = mid - x;
-
               if (wallType === "fixed") {
-                // 固定端：壁は必ず節
-                return 2 * leftAmp * Math.sin(kL * X) * Math.cos(wL * t);
+                // 固定端：壁は節 → 2A sin(kL*X) cos(ωt - kL*mid)
+                return (
+                  2 *
+                  leftAmp *
+                  Math.sin(kL * X) *
+                  Math.cos(wL * t - kL * mid)
+                );
               } else {
-                // 自由端：壁は必ず腹
-                return 2 * leftAmp * Math.cos(kL * X) * Math.sin(wL * t);
+                // 自由端：壁は腹 → 2A cos(kL*X) sin(ωt - kL*mid)
+                return (
+                  2 *
+                  leftAmp *
+                  Math.cos(kL * X) *
+                  Math.sin(wL * t - kL * mid)
+                );
               }
             },
             "rgba(0, 140, 255, 0.85)",
@@ -210,14 +238,20 @@ export default function WaveCanvas({
 
         // 壁ライン
         ctx.beginPath();
-        ctx.strokeStyle = "rgba(255,255,255,0.5)";
+        ctx.strokeStyle = "rgba(34, 211, 238, 0.35)";
         ctx.lineWidth = 2;
         ctx.moveTo(mid, 0);
-        ctx.lineTo(mid, canvas.height);
+        ctx.lineTo(mid, H);
+        ctx.stroke();
+        ctx.strokeStyle = "rgba(255,255,255,0.5)";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(mid, 0);
+        ctx.lineTo(mid, H);
         ctx.stroke();
       }
       if (!pausedRef.current) {
-        tRef.current += 0.03;
+        tRef.current += 0.03 * playbackSpeed;
       }
       animationId = requestAnimationFrame(draw);
     };
@@ -235,9 +269,10 @@ export default function WaveCanvas({
     rightAmp,
     leftLambda,
     rightLambda,
-    leftFreq,
-    rightFreq,
+    leftVib,
+    rightVib,
     speed,
+    playbackSpeed,
     wallOn,
     wallType,
     paused,

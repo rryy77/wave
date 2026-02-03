@@ -1,48 +1,294 @@
-body {
-  margin: 0;
-  background: #0b0e14;
-  color: #eaeaea;
-  font-family: "Inter", sans-serif;
-}
-
 .app {
-  text-align: center;
-}
-
-h1 {
-  margin: 20px 0;
-  color: #00f0ff;
-}
-
-canvas {
-  display: block;
-  margin: 0 auto;
-  background: radial-gradient(circle at center, #111, #000);
-}
-
-.controls {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 20px;
-}
-
-label {
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
+  padding-bottom: 2rem;
 }
 
-input[type="range"] {
-  width: 300px;
+/* ----- Header ----- */
+.app-header {
+  width: 100%;
+  padding: 1.25rem 1.5rem;
+  text-align: center;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-elevated);
 }
 
-button {
-  margin-top: 10px;
-  padding: 10px;
-  background: #00f0ff;
-  border: none;
-  color: #000;
-  font-weight: bold;
+.app-title {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+
+.app-subtitle {
+  margin: 0.25rem 0 0;
+  font-size: 0.9rem;
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
+/* ----- Canvas wrapper ----- */
+.canvas-wrap {
+  width: 100%;
+  flex-shrink: 0;
+  background: radial-gradient(ellipse 80% 60% at 50% 50%, #0f1419, #06080b);
+  border-bottom: 1px solid var(--border);
+  box-shadow: var(--shadow);
+}
+
+.canvas-wrap canvas {
+  display: block;
+  width: 100%;
+  height: 400px;
+}
+
+/* ----- Toolbar (壁・再生) ----- */
+.toolbar {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  z-index: 10;
+}
+
+.toolbar-btn {
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 500;
   cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.toolbar-btn:hover {
+  background: var(--bg-elevated);
+  border-color: var(--accent-cyan);
+  color: var(--accent-cyan);
+}
+
+.toolbar-btn.active {
+  background: var(--accent-cyan-dim);
+  border-color: var(--accent-cyan);
+  color: var(--bg);
+}
+
+.toolbar-btn.primary {
+  background: var(--accent-cyan);
+  border-color: var(--accent-cyan);
+  color: var(--bg);
+}
+
+.toolbar-btn.primary:hover {
+  filter: brightness(1.1);
+  color: var(--bg);
+}
+
+/* ----- Legend ----- */
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1rem 1.5rem;
+  padding: 0.75rem 1rem;
+  margin: 1rem 0 0;
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.legend-dot.green { background: var(--accent-green); }
+.legend-dot.red { background: var(--accent-red); }
+.legend-dot.blue { background: var(--accent-blue); }
+.legend-dot.orange { background: var(--accent-orange); }
+
+/* ----- Controls container ----- */
+.controls {
+  width: 100%;
+  max-width: 560px;
+  padding: 1.5rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.controls-section {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.25rem;
+  box-shadow: var(--shadow);
+}
+
+.controls-section h2 {
+  margin: 0 0 1rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: 0.02em;
+}
+
+.controls-section.global h2 {
+  color: var(--accent-cyan);
+}
+
+.controls-section.left h2 {
+  color: var(--accent-green);
+  border-left: 3px solid var(--accent-green);
+  padding-left: 0.75rem;
+  margin-left: -0.25rem;
+}
+
+.controls-section.right h2 {
+  color: var(--accent-red);
+  border-left: 3px solid var(--accent-red);
+  padding-left: 0.75rem;
+  margin-left: -0.25rem;
+}
+
+/* ----- Control row ----- */
+.control-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: 1rem;
+}
+
+.control-row:last-child {
+  margin-bottom: 0;
+}
+
+.control-row label {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.35rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.control-label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.control-value {
+  font-variant-numeric: tabular-nums;
+  color: var(--accent-cyan);
+  font-weight: 600;
+}
+
+.control-row input[type="range"] {
+  width: 100%;
+  height: 6px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: var(--border);
+  border-radius: 3px;
+  outline: none;
+}
+
+.control-row input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--accent-cyan);
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.control-row input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 0 4px rgba(34, 211, 238, 0.2);
+}
+
+.control-row input[type="range"]::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: none;
+  background: var(--accent-cyan);
+  cursor: pointer;
+}
+
+.controls-section.left .control-row input[type="range"]::-webkit-slider-thumb,
+.controls-section.left .control-row input[type="range"]::-moz-range-thumb {
+  background: var(--accent-green);
+}
+
+.controls-section.right .control-row input[type="range"]::-webkit-slider-thumb,
+.controls-section.right .control-row input[type="range"]::-moz-range-thumb {
+  background: var(--accent-red);
+}
+
+/* ----- Toggle button (ON/OFF) ----- */
+.toggle-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.toggle-btn {
+  padding: 0.5rem 1.25rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.toggle-btn:hover {
+  border-color: var(--text-muted);
+}
+
+.toggle-btn.on {
+  background: var(--accent-green);
+  border-color: var(--accent-green);
+  color: var(--bg);
+}
+
+.controls-section.right .toggle-btn.on {
+  background: var(--accent-red);
+  border-color: var(--accent-red);
+}
+
+.toggle-btn.off {
+  background: var(--border);
+  color: var(--text-muted);
+}
+
+.divider {
+  height: 1px;
+  background: var(--border);
+  margin: 0.5rem 0;
+  border: none;
 }
